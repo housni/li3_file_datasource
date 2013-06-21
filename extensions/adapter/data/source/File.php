@@ -125,18 +125,19 @@ class File extends \lithium\data\Source {
 
 			foreach ($self->file as $lineNumber => $row) {
 				$data = array_combine($fields, $row);
-				if (isset($options['conditions'])) {
-					if (isset($options['conditions'][$primary])) { 
-						$pkSearch = $options['conditions'][$primary];
-						if ($pkSearch == $data[$primary]) {
+
+				$conditions = $options['conditions'];
+				if (is_array($conditions)) { 
+					foreach ($conditions as $key => $condition) {
+						if (in_array($data[$key], (array) $condition)) {
 							$record[] = new Record(['data' => $data]);
-							return new RecordSet(['data' => $record]);
 						}
 					}
+				} else {
+					$record[] = new Record(['data' => $data]);
 				}
-				$recordSet[] = new Record(['data' => $data]);
 			}
-			return new RecordSet(['data' => $recordSet]);
+			return new RecordSet(['data' => $record]);
 		});
 	}
 
