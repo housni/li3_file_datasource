@@ -46,14 +46,12 @@ class Csv extends \li3_file_datasource\extensions\adapter\data\source\File {
 	}
 
 	/**
-	 * This method overloads the parent::read() in order to filter into it and
-	 * apply the CSV specific parameters and flags for SPLFileObject.
-	 * 
-	 * @param object $query `lithium\data\model\Query` object
-	 * @param array $options
-	 * @return object Returns a lithium\data\collection\RecordSet object
+	 * Applying a filter on read() in order to apply the CSV specific
+	 * parameters and flags for SPLFileObject.
 	 */
-	public function read($query, array $options = []) {
+	protected function _init() {
+		parent::_init();
+
 		static::applyFilter('read', function($self, $params, $chain) {
 			$delimiter = $this->_config['delimiter'];
 			$enclosure = $this->_config['enclosure'];
@@ -63,10 +61,7 @@ class Csv extends \li3_file_datasource\extensions\adapter\data\source\File {
 			$self->file->setCsvControl($delimiter, $enclosure, $escape);
 			return $chain->next($self, $params, $chain);
 		});
-
-		return parent::read($query, $options);
 	}
-
 }
 
 ?>
