@@ -13,6 +13,7 @@ use DomainException;
 use DirectoryIterator;
 use lithium\core\Libraries;
 use lithium\core\ConfigException;
+use lithium\data\entity\Record;
 use lithium\data\collection\RecordSet;
 
 class File extends \lithium\data\Source {
@@ -121,21 +122,19 @@ class File extends \lithium\data\Source {
 			$fields  = $model::schema()->names();
 			$primary = $model::meta('key');
 			$options = $params['options'];
-			$data    = [];
 
 			foreach ($self->file as $lineNumber => $row) {
 				if (isset($options['conditions'])) {
 					$search  = $lineNumber + 1;
 					if (isset($options['conditions'][$primary]) 
 						&& $search == $options['conditions'][$primary]) {
-						unset($data);
-						$data[] = (object) array_combine($fields, $row);
-						return new RecordSet(compact('data'));
+						$record[] = new Record(['data' => array_combine($fields, $row)]);
+						return new RecordSet(['data' => $record]);
 					}
 				}
-				$data[] = (object) array_combine($fields, $row);
+				$recordSet[] = new Record(['data' => array_combine($fields, $row)]);
 			}
-			return new RecordSet(compact('data'));
+			return new RecordSet(['data' => $recordSet]);
 		});
 	}
 
