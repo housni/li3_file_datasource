@@ -5,7 +5,7 @@
 Checkout the code to your library directory:
 
 	cd libraries
-	git clone https://github.com/housni/li3_file_datasource.git
+	git clone git@github.com:housni/li3_file_datasource.git
 
 Include the library in in your `/app/config/bootstrap/libraries.php`
 
@@ -45,8 +45,8 @@ There are all the possible options:
 		]);
 	?>
 
-	For more about `mode`, look at the `mode` parameter of [fopen()](http://www.php.net/manual/en/function.fopen.php#function.fopen).
-	The `flags` are for [SPLFileObject](http://www.php.net/manual/en/class.splfileobject.php#splfileobject.constants).
+For more about `mode`, look at the `mode` parameter of [fopen()](http://www.php.net/manual/en/function.fopen.php#function.fopen).
+The `flags` are for [SPLFileObject](http://www.php.net/manual/en/class.splfileobject.php#splfileobject.constants).
 
 
 ## Usage
