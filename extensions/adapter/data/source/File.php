@@ -96,7 +96,7 @@ class File extends \lithium\data\Source {
 	}
 
 	/**
-	 * @todo limit (null), page (null), with (array)
+	 * @todo with (array), implement relationships
 	 * 
 	 * @param object $query `lithium\data\model\Query` object
 	 * @param array $options
@@ -131,6 +131,7 @@ class File extends \lithium\data\Source {
 				$this->_validFields($orderKeys, $names);
 			}
 
+			$records = null;
 			foreach ($self->file as $lineNumber => $row) {
 				$data = array_combine($names, $row);
 
@@ -142,22 +143,22 @@ class File extends \lithium\data\Source {
 				if ($conditions) { 
 					foreach ($conditions as $key => $condition) {
 						if (in_array($data[$key], (array) $condition)) {
-							$record[] = new Record(compact('data'));
+							$records[] = $data;
 						}
 					}
 				} else {
-					$record[] = new Record(compact('data'));
+					$records[] = $data;
 				}
 			}
 
 			if ($order) {
-				usort($record, function($a, $b) use ($order) { 
+				usort($records, function($a, $b) use ($order) { 
 					$key = key($order);
 					$type = reset($order);
 					switch ($type) {
 						case 'DESC':
-							if (!is_numeric($a->$key)) {
-								$result = strcmp($a->$key, $b->$key);
+							if (!is_numeric($a[$key])) {
+								$result = strcmp($a[$key], $b[$key]);
 								if (1 == $result) {
 									return -1;
 								}
@@ -169,11 +170,11 @@ class File extends \lithium\data\Source {
 								return $result;
 							}
 
-							if ($a->$key == $b->$key) {
+							if ($a[$key] == $b[$key]) {
 								return 0;
 							}
 
-							if ($a->$key < $b->$key) {
+							if ($a[$key] < $b[$key]) {
 								return 1;
 							}
 
@@ -182,15 +183,15 @@ class File extends \lithium\data\Source {
 
 						default:
 						case 'ASC':
-							if (!is_numeric($a->$key)) {
-								return strcmp($a->$key, $b->$key);
+							if (!is_numeric($a[$key])) {
+								return strcmp($a[$key], $b[$key]);
 							}
 
-							if ($a->$key == $b->$key) {
+							if ($a[$key] == $b[$key]) {
 								return 0;
 							}
 
-							if ($a->$key < $b->$key) {
+							if ($a[$key] < $b[$key]) {
 								return -1;
 							}
 
@@ -199,7 +200,22 @@ class File extends \lithium\data\Source {
 					}
 				});
 			}
-			return new RecordSet(['data' => $record]);
+
+			if (!$records) {
+				return $records;
+			}
+
+			if ($limit || ($limit && $page)) {
+				$page = $page ? $page : 1;
+				$offset = ($page - 1) * $limit;
+				$records = array_slice($records, $offset, $limit);
+			}
+
+			$data = [];
+			foreach ($records as $record) {
+				$data[] = new Record(['data' => $record]);
+			}
+			return new RecordSet(compact('data'));
 		});
 	}
 
