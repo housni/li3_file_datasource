@@ -13,6 +13,7 @@ use DomainException;
 use DirectoryIterator;
 use lithium\core\Libraries;
 use lithium\core\ConfigException;
+use lithium\data\model\QueryException;
 use lithium\data\entity\Record;
 use lithium\data\collection\RecordSet;
 
@@ -95,6 +96,8 @@ class File extends \lithium\data\Source {
 	}
 
 	/**
+	 * @todo order (null), limit (null), page (null), with (array)
+	 * 
 	 * @param object $query `lithium\data\model\Query` object
 	 * @param array $options
 	 * @return object Returns a lithium\data\collection\RecordSet object
@@ -119,12 +122,22 @@ class File extends \lithium\data\Source {
 
 		return $this->_filter(__METHOD__, compact('query', 'options'), function($self, $params) {
 			extract($params['options']);
-			$primary = $model::meta('key');
+			$names = $model::schema()->names();
+
+			if ($fields && $unknownFields = array_diff($fields, $names)) {
+				$unknownField = reset($unknownFields);
+				throw new QueryException("Unknown field '$unknownField' in field list");
+			}
 
 			foreach ($self->file as $lineNumber => $row) {
-				$data = array_combine($model::schema()->names(), $row);
+				$data = array_combine($names, $row);
 
-				if (is_array($conditions)) { 
+				if ($fields) {
+					$selected = array_flip(array_intersect($fields, $names));
+					$data = array_intersect_key($data, $selected);
+				}
+
+				if ($conditions) { 
 					foreach ($conditions as $key => $condition) {
 						if (in_array($data[$key], (array) $condition)) {
 							$record[] = new Record(compact('data'));
