@@ -118,23 +118,20 @@ class File extends \lithium\data\Source {
 		$this->file = new SplFileObject("{$base}.{$ext}", $mode);
 
 		return $this->_filter(__METHOD__, compact('query', 'options'), function($self, $params) {
-			$model   = $params['options']['model'];
-			$fields  = $model::schema()->names();
+			extract($params['options']);
 			$primary = $model::meta('key');
-			$options = $params['options'];
 
 			foreach ($self->file as $lineNumber => $row) {
-				$data = array_combine($fields, $row);
+				$data = array_combine($model::schema()->names(), $row);
 
-				$conditions = $options['conditions'];
 				if (is_array($conditions)) { 
 					foreach ($conditions as $key => $condition) {
 						if (in_array($data[$key], (array) $condition)) {
-							$record[] = new Record(['data' => $data]);
+							$record[] = new Record(compact('data'));
 						}
 					}
 				} else {
-					$record[] = new Record(['data' => $data]);
+					$record[] = new Record(compact('data'));
 				}
 			}
 			return new RecordSet(['data' => $record]);
