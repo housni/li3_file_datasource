@@ -124,7 +124,9 @@ class File extends \lithium\data\Source {
 			extract($params['options']);
 			$names = $model::schema()->names();
 
-			$this->_validFields($fields, $names);
+			if ($fields) {
+				$this->_validFields($fields, $names);
+			}
 
 			if ($order) {
 				$orderKeys = array_keys($order);
