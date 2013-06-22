@@ -96,7 +96,7 @@ class File extends \lithium\data\Source {
 	}
 
 	/**
-	 * @todo order (null), limit (null), page (null), with (array)
+	 * @todo limit (null), page (null), with (array)
 	 * 
 	 * @param object $query `lithium\data\model\Query` object
 	 * @param array $options
@@ -124,9 +124,11 @@ class File extends \lithium\data\Source {
 			extract($params['options']);
 			$names = $model::schema()->names();
 
-			if ($fields && $unknownFields = array_diff($fields, $names)) {
-				$unknownField = reset($unknownFields);
-				throw new QueryException("Unknown field '$unknownField' in field list");
+			$this->_validFields($fields, $names);
+
+			if ($order) {
+				$orderKeys = array_keys($order);
+				$this->_validFields($orderKeys, $names);
 			}
 
 			foreach ($self->file as $lineNumber => $row) {
@@ -147,8 +149,65 @@ class File extends \lithium\data\Source {
 					$record[] = new Record(compact('data'));
 				}
 			}
+
+			if ($order) {
+				usort($record, function($a, $b) use ($order) { 
+					$key = key($order);
+					$type = reset($order);
+					switch ($type) {
+						case 'DESC':
+							if (!is_numeric($a->$key)) {
+								$result = strcmp($a->$key, $b->$key);
+								if (1 == $result) {
+									return -1;
+								}
+
+								if (-1 == $result) {
+									return 1;
+								}
+
+								return $result;
+							}
+
+							if ($a->$key == $b->$key) {
+								return 0;
+							}
+
+							if ($a->$key < $b->$key) {
+								return 1;
+							}
+
+							return -1;
+						break;
+
+						default:
+						case 'ASC':
+							if (!is_numeric($a->$key)) {
+								return strcmp($a->$key, $b->$key);
+							}
+
+							if ($a->$key == $b->$key) {
+								return 0;
+							}
+
+							if ($a->$key < $b->$key) {
+								return -1;
+							}
+
+							return 1;
+						break;
+					}
+				});
+			}
 			return new RecordSet(['data' => $record]);
 		});
+	}
+
+	protected function _validFields(array $fields, array $names) {
+		if ($fields && $unknowns = array_diff($fields, $names)) {
+			$unknown = reset($unknowns);
+			throw new QueryException("Unknown field '$unknown' in field list");
+		}
 	}
 
 	/**
