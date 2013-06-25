@@ -161,15 +161,11 @@ class File extends \lithium\data\Source {
 						case 'DESC':
 							if (!is_numeric($a[$key])) {
 								$result = strcmp($a[$key], $b[$key]);
-								if (1 == $result) {
-									return -1;
+								if ($result == 0) {
+									return $result;
 								}
 
-								if (-1 == $result) {
-									return 1;
-								}
-
-								return $result;
+								return $result * -1;
 							}
 
 							if ($a[$key] == $b[$key]) {
