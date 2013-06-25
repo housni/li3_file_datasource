@@ -1,5 +1,11 @@
 # The file data source for the Lithium framework
 
+This plugin uses [SplFileObject](http://php.net/manual/en/class.splfileobject.php) to read/write to files.
+It's meant to be a plugin that will treat any file on disk as a datasource.
+
+Right now, only a CSV adapter has been implemented which means you can use the regular [Lithium](https://github.com/UnionOfRAD/lithium) finders to query a CSV with all the options a finder gives you.
+
+
 ## Installation
 
 Checkout the code to your library directory:
@@ -13,7 +19,8 @@ Include the library in in your `/app/config/bootstrap/libraries.php`
 
 ## Configuration
 
-Basic configuration for CSV files:
+### For reading CSV files as a datasource
+`app/config/bootstrap/connections.php`:
 
 	<?php
 		Connections::add('csv', [
@@ -22,7 +29,7 @@ Basic configuration for CSV files:
 		]);
 	?>
 
-There are all the possible options:
+Here are all the options that you can override if you'd like to:
 
 	<?php
 		Connections::add('csv', [
@@ -45,11 +52,20 @@ There are all the possible options:
 		]);
 	?>
 
+#### NOTES
+* Please make sure the `path` is writable if `mode` is `a+`.
+* If `mode` is `r` then make sure `path` is readable, at least.
+* By default, the `path` for CSV's are `app/resources/file/csv`
+* By default, a `Posts` model would cause the plugin to look for the CSV file `app/resources/file/csv/posts.csv`
+
 For more about `mode`, look at the `mode` parameter of [fopen()](http://www.php.net/manual/en/function.fopen.php#function.fopen).
 The `flags` are for [SPLFileObject](http://www.php.net/manual/en/class.splfileobject.php#splfileobject.constants).
 
 
 ## Usage
+Since the file won't have its own schema definition, you must specify the schema in your model.
+The plugin will then read the data and map the data with the schema you defined.
+In the example below, the plugin will map the 2nd piece of data it reads to `title`.
 
 	<?php
 
@@ -57,10 +73,16 @@ The `flags` are for [SPLFileObject](http://www.php.net/manual/en/class.splfileob
 
 	class Posts extends \lithium\data\Model {
 
+		/**
+		 * Specify that you want this model to use the CSV connection we defined.
+		 */
 		protected $_meta = [ 
 			'connection' => 'csv',
 		];
 
+		/**
+		 * You must define the schema
+		 */
 		protected $_schema = [ 
 			'id'           => ['type' => 'id'],
 			'title'   => [
@@ -78,12 +100,67 @@ The `flags` are for [SPLFileObject](http://www.php.net/manual/en/class.splfileob
 
 Now, you'd use it like any other model, using finders.
 
+	<?php
+
+	namespace app\controllers;
+
+	use app\models\Posts;
+
+	class PostsController extends \lithium\action\Controller {
+		public function index(){
+			$posts = Posts::find('all', [
+				'fields' => [
+					'id',
+					'title'
+				],
+				'order'  => ['id' => 'ASC'],
+				'limit'  => 5,
+				'page'   => 2
+			]);
+			return compact('posts');
+		}
+
+		public function latest(){
+			$posts = Posts::find('all', [
+				'fields' => [
+					'id',
+					'title'
+				],
+				'order'  => ['id' => 'DESC'],
+			]);
+			return compact('posts');
+		}
+
+		public function view() {
+			$post = Posts::find($this->request->id);
+			return compact('posts');
+		}
+	}
+	?>
+
+
+## Sample CSV file
+
+	1,My 1st Title,"Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+	2,My 2nd Title,"Suspendisse in nulla semper, aliquet ligula ac, laoreet libero."
+	3,My 3rd Title,"Nullam eu orci ac ligula dapibus convallis ac at diam."
+	4,My 4th Title,"Morbi nec quam vitae purus iaculis varius sit amet at nibh."
+	5,My 5th Title,"Sed lobortis tellus nec lacus ultrices gravida."
+	6,My 6th Title,"Etiam fringilla magna eget neque auctor, nec euismod urna tristique."
+	7,My 7th Title,"Fusce at arcu sit amet purus tincidunt vulputate."
+	8,My 8th Title,"Vestibulum eget eros ultrices, consectetur leo a, egestas nisi."
+	9,My 9th Title,"Etiam eu turpis eleifend, convallis urna ac, vulputate metus."
+	10,My 10th Title,"Nullam vestibulum arcu eu mattis tempor."
+
+
 
 ## Credits
 * [jails](https://github.com/jails), for helping me solve a problem on [#li3](irc://irc.freenode.net/#li3)
 
 
+
 ## TODO
-* Add all the finder options.
+* Add relationships.
+* Add `with` option to finders.
 * Complete unit tests.
 * Add support for more formats.
