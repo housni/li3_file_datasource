@@ -8,7 +8,7 @@ Right now, only a CSV adapter has been implemented which means you can use the r
 
 ## Installation
 
-Checkout the code to your library directory:
+Clone the code to your library directory (or add it as a submodule):
 
 	cd libraries
 	git clone git@github.com:housni/li3_file_datasource.git
@@ -24,7 +24,7 @@ Include the library in in your `/app/config/bootstrap/libraries.php`
 
 	<?php
 		Connections::add('csv', [
-			'type'    => 'file',
+			'type' => 'file',
 			'adapter' => 'Csv',
 		]);
 	?>
@@ -33,14 +33,14 @@ Here are all the options that you can override if you'd like to:
 
 	<?php
 		Connections::add('csv', [
-			'type'    => 'file',
+			'type' => 'file',
 			'adapter' => 'Csv',
 			'delimiter' => ',',
 			'enclosure' => '"',
-			'escape'    => '\\',
-			'path'      => Libraries::get(true, 'resources') . '/file/csv',
+			'escape' => '\\',
+			'path' => Libraries::get(true, 'resources') . '/file/csv',
 			'extension' => 'csv',
-			'options'   => [
+			'options' => [
 				'flags' => 
 					SplFileObject::DROP_NEW_LINE |
 					SplFileObject::READ_AHEAD |
@@ -84,15 +84,15 @@ In the example below, the plugin will map the 2nd piece of data it reads to `tit
 		 * You must define the schema
 		 */
 		protected $_schema = [ 
-			'id'           => ['type' => 'id'],
-			'title'   => [
-				'type'       => 'string',
-				'length'     => 255, 
-				'null'       => false,
+			'id' => ['type' => 'id'],
+			'title' => [
+				'type' => 'string',
+				'length' => 255, 
+				'null' => false,
 			],
-			'content'   => [
-				'type'       => 'text',
-				'null'       => false,
+			'content' => [
+				'type' => 'text',
+				'null' => false,
 			],
 		];
 	}
@@ -113,9 +113,8 @@ Now, you'd use it like any other model, using finders.
 					'id',
 					'title'
 				],
-				'order'  => ['id' => 'ASC'],
-				'limit'  => 5,
-				'page'   => 2
+				'limit' => 5,
+				'page' => 2
 			]);
 			return compact('posts');
 		}
@@ -126,20 +125,20 @@ Now, you'd use it like any other model, using finders.
 					'id',
 					'title'
 				],
-				'order'  => ['id' => 'DESC'],
+				'order' => ['id' => 'DESC'],
 			]);
 			return compact('posts');
 		}
 
 		public function view() {
 			$post = Posts::find($this->request->id);
-			return compact('posts');
+			return compact('post');
 		}
 	}
 	?>
 
 
-## Sample CSV file
+## Sample CSV file `app/resources/file/csv/posts.csv`
 
 	1,My 1st Title,"Lorem ipsum dolor sit amet, consectetur adipiscing elit."
 	2,My 2nd Title,"Suspendisse in nulla semper, aliquet ligula ac, laoreet libero."
