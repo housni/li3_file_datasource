@@ -125,12 +125,12 @@ class File extends \lithium\data\Source {
 			$names = $model::schema()->names();
 
 			if ($fields) {
-				$this->_validFields($fields, $names);
+				$this->_validateFields($fields, $names);
 			}
 
 			if ($order) {
 				$orderKeys = array_keys($order);
-				$this->_validFields($orderKeys, $names);
+				$this->_validateFields($orderKeys, $names);
 			}
 
 			$records = null;
@@ -154,49 +154,7 @@ class File extends \lithium\data\Source {
 			}
 
 			if ($order) {
-				usort($records, function($a, $b) use ($order) { 
-					$key = key($order);
-					$type = reset($order);
-					switch ($type) {
-						case 'DESC':
-							if (!is_numeric($a[$key])) {
-								$result = strcmp($a[$key], $b[$key]);
-								if ($result == 0) {
-									return $result;
-								}
-
-								return $result * -1;
-							}
-
-							if ($a[$key] == $b[$key]) {
-								return 0;
-							}
-
-							if ($a[$key] < $b[$key]) {
-								return 1;
-							}
-
-							return -1;
-						break;
-
-						default:
-						case 'ASC':
-							if (!is_numeric($a[$key])) {
-								return strcmp($a[$key], $b[$key]);
-							}
-
-							if ($a[$key] == $b[$key]) {
-								return 0;
-							}
-
-							if ($a[$key] < $b[$key]) {
-								return -1;
-							}
-
-							return 1;
-						break;
-					}
-				});
+				$records = $this->_sort($records, $order);
 			}
 
 			if (!$records) {
@@ -217,11 +175,80 @@ class File extends \lithium\data\Source {
 		});
 	}
 
-	protected function _validFields(array $fields, array $names) {
+	/**
+	 * Sorts $records based on $order
+	 * 
+	 * @param  array  $records  An array of records
+	 * @param  array  $order  An array whose key is the field to sort by and
+	 *                        the value is the sort type (ASC|DESC)
+	 * @return  array  A sorted $records
+	 */
+	protected function _sort(array $records, array $order) {
+		usort($records, function($a, $b) use ($order) { 
+			$key = key($order);
+			$type = reset($order);
+			switch ($type) {
+				case 'DESC':
+					if (!is_numeric($a[$key])) {
+						$result = strcmp($a[$key], $b[$key]);
+						if ($result == 0) {
+							return $result;
+						}
+
+						return $result * -1;
+					}
+
+					if ($a[$key] == $b[$key]) {
+						return 0;
+					}
+
+					if ($a[$key] < $b[$key]) {
+						return 1;
+					}
+
+					return -1;
+				break;
+
+				default:
+				case 'ASC':
+					if (!is_numeric($a[$key])) {
+						return strcmp($a[$key], $b[$key]);
+					}
+
+					if ($a[$key] == $b[$key]) {
+						return 0;
+					}
+
+					if ($a[$key] < $b[$key]) {
+						return -1;
+					}
+
+					return 1;
+				break;
+			}
+		});
+
+		return $records;
+	}
+
+	/**
+	 * Checks to see if $fields exists in $names
+	 *
+	 * Since this plugin expects you to define the schema, when you sepcify
+	 * a finders `fields`, `order`, etc clause, it checks to see if the
+	 * specified field exists in the defined schema.
+	 * 
+	 * @param  array  $fields  An array of fields to check for
+	 * @param  array  $names  An array of the schema fields to check against
+	 * @return  boolean  True if fields are valid
+	 * @throws  QueryException
+	 */
+	protected function _validateFields(array $fields, array $names) {
 		if ($fields && $unknowns = array_diff($fields, $names)) {
 			$unknown = reset($unknowns);
 			throw new QueryException("Unknown field '$unknown' in field list");
 		}
+		return true;
 	}
 
 	/**
