@@ -45,8 +45,7 @@ Here are all the options that you can override if you'd like to:
 					SplFileObject::DROP_NEW_LINE |
 					SplFileObject::READ_AHEAD |
 					SplFileObject::SKIP_EMPTY |
-					SplFileObject::READ_CSV
-				,
+					SplFileObject::READ_CSV,
 				'mode' => 'a+'
 			]
 		]);
@@ -54,18 +53,17 @@ Here are all the options that you can override if you'd like to:
 
 #### NOTES
 * Please make sure the `path` is writable if `mode` is `a+`.
-* If `mode` is `r` then make sure `path` is readable, at least.
+* If `options.mode` is `r` then make sure `path` is readable, at least.
 * By default, the `path` for CSV's are `app/resources/file/csv`
 * By default, a `Posts` model would cause the plugin to look for the CSV file `app/resources/file/csv/posts.csv`
-
-For more about `mode`, look at the `mode` parameter of [fopen()](http://www.php.net/manual/en/function.fopen.php#function.fopen).
-The `flags` are for [SPLFileObject](http://www.php.net/manual/en/class.splfileobject.php#splfileobject.constants).
+ * For more about `options.mode`, look at the `mode` parameter of [fopen()](http://www.php.net/manual/en/function.fopen.php#function.fopen).
+ * The `options.flags` are for [SPLFileObject](http://www.php.net/manual/en/class.splfileobject.php#splfileobject.constants).
 
 
 ## Usage
 Since the file won't have its own schema definition, you must specify the schema in your model.
 The plugin will then read the data and map the data with the schema you defined.
-In the example below, the plugin will map the 2nd piece of data it reads to `title`.
+In the example below, the plugin will map the 2nd comma separated value (since the configuration, above, specifies values should be separated by commas) of the data it reads from file to the to `title` attribute of the model.
 
 	<?php
 
@@ -107,35 +105,101 @@ Now, you'd use it like any other model, using finders.
 	use app\models\Posts;
 
 	class PostsController extends \lithium\action\Controller {
-		public function index(){
+
+		/**
+		 * The SQL equivalent would have looked like:
+		 * SELECT `Posts`.`id`, `Posts`.`title`
+		 *   FROM `posts` AS `Posts`
+		 *  LIMIT 5
+		 * OFFSET 5
+		 */
+		public function index() {
 			$posts = Posts::find('all', [
 				'fields' => [
 					'id',
 					'title'
 				],
 				'limit' => 5,
-				'page' => 2
+				'page'  => 2,
 			]);
 			return compact('posts');
 		}
 
-		public function latest(){
+		/**
+		 * The SQL equivalent would have looked like:
+		 *   SELECT `Posts`.`id`, `Posts`.`title`
+		 *     FROM `posts` AS `Posts`
+		 * ORDER BY `Posts`.`id` DESC
+		 *    LIMIT 5
+		 */
+		public function latest() {
 			$posts = Posts::find('all', [
 				'fields' => [
 					'id',
 					'title'
 				],
+				'limit' => 5,
 				'order' => ['id' => 'DESC'],
 			]);
 			return compact('posts');
 		}
 
+		/**
+		 * The SQL equivalent would have looked like:
+		 * SELECT *
+		 *   FROM `posts` AS `Posts`
+		 *  WHERE `Posts`.`id` = '1'
+		 *  LIMIT 1
+		 */
 		public function view() {
 			$post = Posts::find($this->request->id);
 			return compact('post');
 		}
 	}
 	?>
+
+
+app/views/posts/index.html.php
+
+	<h1>All Posts</h1>
+	<ul>
+		<?php foreach ($posts as $post) : ?>
+			<li>
+				<?= $this->html->link($post->title, [
+						'Posts::view',
+						'id' => $post->id
+					],
+					['title' => $post->title]
+				) ?>
+			</li>
+		<?php endforeach; ?>
+	</ul>
+
+
+app/views/posts/latest.html.php
+
+	<h1>Latest Posts</h1>
+	<ul>
+		<?php foreach ($posts as $post) : ?>
+			<li>
+				<?= $this->html->link($post->title, [
+						'Posts::view',
+						'id' => $post->id
+					],
+					['title' => $post->title]
+				) ?>
+			</li>
+		<?php endforeach; ?>
+	</ul>
+
+
+app/views/posts/view.html.php
+
+	<h1>Viewing Post</h1>
+	<article>
+		<h2><?= $post->title ?></h2>
+		<p><?= $post->content ?></p>
+	</article>
 
 
 ## Sample CSV file `app/resources/file/csv/posts.csv`
@@ -154,7 +218,7 @@ Now, you'd use it like any other model, using finders.
 
 
 ## Credits
-* [jails](https://github.com/jails), for helping me solve a problem on [#li3](irc://irc.freenode.net/#li3)
+* [jails](https://github.com/jails), for helping me solve a problem on #li3 (irc://irc.freenode.net/#li3)
 
 
 
