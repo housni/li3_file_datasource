@@ -56,8 +56,8 @@ Here are all the options that you can override if you'd like to:
 * If `options.mode` is `r` then make sure `path` is readable, at least.
 * By default, the `path` for CSV's are `app/resources/file/csv`
 * By default, a `Posts` model would cause the plugin to look for the CSV file `app/resources/file/csv/posts.csv`
- * For more about `options.mode`, look at the `mode` parameter of [fopen()](http://www.php.net/manual/en/function.fopen.php#function.fopen).
- * The `options.flags` are for [SPLFileObject](http://www.php.net/manual/en/class.splfileobject.php#splfileobject.constants).
+* For more about `options.mode`, look at the `mode` parameter of [fopen()](http://www.php.net/manual/en/function.fopen.php#function.fopen).
+* The `options.flags` are for [SPLFileObject](http://www.php.net/manual/en/class.splfileobject.php#splfileobject.constants).
 
 
 ## Usage
@@ -84,13 +84,13 @@ In the example below, the plugin will map the 2nd comma separated value (since t
 		protected $_schema = [ 
 			'id' => ['type' => 'id'],
 			'title' => [
-				'type' => 'string',
+				'type'   => 'string',
 				'length' => 255, 
-				'null' => false,
+				'null'   => false
 			],
 			'content' => [
 				'type' => 'text',
-				'null' => false,
+				'null' => false
 			],
 		];
 	}
@@ -120,7 +120,7 @@ Now, you'd use it like any other model, using finders.
 					'title'
 				],
 				'limit' => 5,
-				'page'  => 2,
+				'page'  => 2
 			]);
 			return compact('posts');
 		}
@@ -139,7 +139,7 @@ Now, you'd use it like any other model, using finders.
 					'title'
 				],
 				'limit' => 5,
-				'order' => ['id' => 'DESC'],
+				'order' => ['id' => 'DESC']
 			]);
 			return compact('posts');
 		}
