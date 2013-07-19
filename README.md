@@ -223,6 +223,7 @@ app/views/posts/view.html.php
 
 
 ## TODO
+* Use lithium\util\Set to manipulate arrays.
 * Add relationships.
 * Add `with` option to finders.
 * Complete unit tests.
