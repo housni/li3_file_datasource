@@ -21,35 +21,37 @@ Include the library in in your `/app/config/bootstrap/libraries.php`
 
 ### For reading CSV files as a datasource
 `app/config/bootstrap/connections.php`:
-
-	<?php
-		Connections::add('csv', [
-			'type' => 'file',
-			'adapter' => 'Csv',
-		]);
-	?>
+```php
+<?php
+	Connections::add('csv', [
+		'type' => 'file',
+		'adapter' => 'Csv',
+	]);
+?>
+111
 
 Here are all the options that you can override if you'd like to:
-
-	<?php
-		Connections::add('csv', [
-			'type' => 'file',
-			'adapter' => 'Csv',
-			'delimiter' => ',',
-			'enclosure' => '"',
-			'escape' => '\\',
-			'path' => Libraries::get(true, 'resources') . '/file/csv',
-			'extension' => 'csv',
-			'options' => [
-				'flags' => 
-					SplFileObject::DROP_NEW_LINE |
-					SplFileObject::READ_AHEAD |
-					SplFileObject::SKIP_EMPTY |
-					SplFileObject::READ_CSV,
-				'mode' => 'a+'
-			]
-		]);
-	?>
+```php
+<?php
+	Connections::add('csv', [
+		'type' => 'file',
+		'adapter' => 'Csv',
+		'delimiter' => ',',
+		'enclosure' => '"',
+		'escape' => '\\',
+		'path' => Libraries::get(true, 'resources') . '/file/csv',
+		'extension' => 'csv',
+		'options' => [
+			'flags' => 
+				SplFileObject::DROP_NEW_LINE |
+				SplFileObject::READ_AHEAD |
+				SplFileObject::SKIP_EMPTY |
+				SplFileObject::READ_CSV,
+			'mode' => 'a+'
+		]
+	]);
+?>
+```
 
 #### NOTES
 * Please make sure the `path` is writable if `mode` is `a+`.
@@ -64,142 +66,147 @@ Here are all the options that you can override if you'd like to:
 Since the file won't have its own schema definition, you must specify the schema in your model.
 The plugin will then read the data and map the data with the schema you defined.
 In the example below, the plugin will map the 2nd comma separated value (since the configuration, above, specifies values should be separated by commas) of the data it reads from file to the to `title` attribute of the model.
+```php
+<?php
 
-	<?php
+namespace app\models;
 
-	namespace app\models;
+class Posts extends \lithium\data\Model {
 
-	class Posts extends \lithium\data\Model {
+	/**
+	 * Specify that you want this model to use the CSV connection we defined.
+	 */
+	protected $_meta = [ 
+		'connection' => 'csv',
+	];
 
-		/**
-		 * Specify that you want this model to use the CSV connection we defined.
-		 */
-		protected $_meta = [ 
-			'connection' => 'csv',
-		];
-
-		/**
-		 * You must define the schema
-		 */
-		protected $_schema = [ 
-			'id' => ['type' => 'id'],
-			'title' => [
-				'type'   => 'string',
-				'length' => 255, 
-				'null'   => false
-			],
-			'content' => [
-				'type' => 'text',
-				'null' => false
-			],
-		];
-	}
-	?>
+	/**
+	 * You must define the schema
+	 */
+	protected $_schema = [ 
+		'id' => ['type' => 'id'],
+		'title' => [
+			'type'   => 'string',
+			'length' => 255, 
+			'null'   => false
+		],
+		'content' => [
+			'type' => 'text',
+			'null' => false
+		],
+	];
+}
+?>
+```
 
 Now, you'd use it like any other model, using finders.
+```php
+<?php
 
-	<?php
+namespace app\controllers;
 
-	namespace app\controllers;
+use app\models\Posts;
 
-	use app\models\Posts;
+class PostsController extends \lithium\action\Controller {
 
-	class PostsController extends \lithium\action\Controller {
-
-		/**
-		 * The SQL equivalent would have looked like:
-		 * SELECT `Posts`.`id`, `Posts`.`title`
-		 *   FROM `posts` AS `Posts`
-		 *  LIMIT 5
-		 * OFFSET 5
-		 */
-		public function index() {
-			$posts = Posts::find('all', [
-				'fields' => [
-					'id',
-					'title'
-				],
-				'limit' => 5,
-				'page'  => 2
-			]);
-			return compact('posts');
-		}
-
-		/**
-		 * The SQL equivalent would have looked like:
-		 *   SELECT `Posts`.`id`, `Posts`.`title`
-		 *     FROM `posts` AS `Posts`
-		 * ORDER BY `Posts`.`id` DESC
-		 *    LIMIT 5
-		 */
-		public function latest() {
-			$posts = Posts::find('all', [
-				'fields' => [
-					'id',
-					'title'
-				],
-				'limit' => 5,
-				'order' => ['id' => 'DESC']
-			]);
-			return compact('posts');
-		}
-
-		/**
-		 * The SQL equivalent would have looked like:
-		 * SELECT *
-		 *   FROM `posts` AS `Posts`
-		 *  WHERE `Posts`.`id` = '1'
-		 *  LIMIT 1
-		 */
-		public function view() {
-			$post = Posts::find($this->request->id);
-			return compact('post');
-		}
+	/**
+	 * The SQL equivalent would have looked like:
+	 * SELECT `Posts`.`id`, `Posts`.`title`
+	 *   FROM `posts` AS `Posts`
+	 *  LIMIT 5
+	 * OFFSET 5
+	 */
+	public function index() {
+		$posts = Posts::find('all', [
+			'fields' => [
+				'id',
+				'title'
+			],
+			'limit' => 5,
+			'page'  => 2
+		]);
+		return compact('posts');
 	}
-	?>
+
+	/**
+	 * The SQL equivalent would have looked like:
+	 *   SELECT `Posts`.`id`, `Posts`.`title`
+	 *     FROM `posts` AS `Posts`
+	 * ORDER BY `Posts`.`id` DESC
+	 *    LIMIT 5
+	 */
+	public function latest() {
+		$posts = Posts::find('all', [
+			'fields' => [
+				'id',
+				'title'
+			],
+			'limit' => 5,
+			'order' => ['id' => 'DESC']
+		]);
+		return compact('posts');
+	}
+
+	/**
+	 * The SQL equivalent would have looked like:
+	 * SELECT *
+	 *   FROM `posts` AS `Posts`
+	 *  WHERE `Posts`.`id` = '1'
+	 *  LIMIT 1
+	 */
+	public function view() {
+		$post = Posts::find($this->request->id);
+		return compact('post');
+	}
+}
+?>
+```
 
 
 app/views/posts/index.html.php
-
-	<h1>All Posts</h1>
-	<ul>
-		<?php foreach ($posts as $post) : ?>
-			<li>
-				<?= $this->html->link($post->title, [
-						'Posts::view',
-						'id' => $post->id
-					],
-					['title' => $post->title]
-				) ?>
-			</li>
-		<?php endforeach; ?>
-	</ul>
+```html
+<h1>All Posts</h1>
+<ul>
+	<?php foreach ($posts as $post) : ?>
+		<li>
+			<?= $this->html->link($post->title, [
+					'Posts::view',
+					'id' => $post->id
+				],
+				['title' => $post->title]
+			) ?>
+		</li>
+	<?php endforeach; ?>
+</ul>
+```
 
 
 app/views/posts/latest.html.php
-
-	<h1>Latest Posts</h1>
-	<ul>
-		<?php foreach ($posts as $post) : ?>
-			<li>
-				<?= $this->html->link($post->title, [
-						'Posts::view',
-						'id' => $post->id
-					],
-					['title' => $post->title]
-				) ?>
-			</li>
-		<?php endforeach; ?>
-	</ul>
+```html
+<h1>Latest Posts</h1>
+<ul>
+	<?php foreach ($posts as $post) : ?>
+		<li>
+			<?= $this->html->link($post->title, [
+					'Posts::view',
+					'id' => $post->id
+				],
+				['title' => $post->title]
+			) ?>
+		</li>
+	<?php endforeach; ?>
+</ul>
+```
 
 
 app/views/posts/view.html.php
-
-	<h1>Viewing Post</h1>
-	<article>
-		<h2><?= $post->title ?></h2>
-		<p><?= $post->content ?></p>
-	</article>
+```html
+<h1>Viewing Post</h1>
+<article>
+	<h2><?= $post->title ?></h2>
+	<p><?= $post->content ?></p>
+</article>
+```
 
 
 ## Sample CSV file `app/resources/file/csv/posts.csv`
@@ -218,7 +225,7 @@ app/views/posts/view.html.php
 
 
 ## Credits
-* [jails](https://github.com/jails), for helping me solve a problem on #li3 (irc://irc.freenode.net/#li3)
+* [jails](https://github.com/jails), for helping me solve a problem on IRC (irc://irc.freenode.net/#li3)
 
 
 
