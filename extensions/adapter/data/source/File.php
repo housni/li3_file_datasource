@@ -43,7 +43,7 @@ class File extends \lithium\data\Source {
 	/**
 	 * Checks to see if `path` is a directory and if it is readable/writable,
 	 * depending on `$this->_config['options']['mode']`.
-	 * 
+	 *
 	 * @see    http://www.php.net/manual/en/function.fopen.php
 	 */
 	public function connect() {
@@ -97,7 +97,7 @@ class File extends \lithium\data\Source {
 
 	/**
 	 * @todo with (array), implement relationships
-	 * 
+	 *
 	 * @param object $query `lithium\data\model\Query` object
 	 * @param array $options
 	 * @return object Returns a lithium\data\collection\RecordSet object
@@ -142,7 +142,7 @@ class File extends \lithium\data\Source {
 					$data = array_intersect_key($data, $selected);
 				}
 
-				if ($conditions) { 
+				if ($conditions) {
 					foreach ($conditions as $key => $condition) {
 						if (in_array($data[$key], (array) $condition)) {
 							$records[] = $data;
@@ -177,14 +177,14 @@ class File extends \lithium\data\Source {
 
 	/**
 	 * Sorts $records based on $order
-	 * 
+	 *
 	 * @param  array  $records  An array of records
 	 * @param  array  $order  An array whose key is the field to sort by and
 	 *                        the value is the sort type (ASC|DESC)
 	 * @return  array  A sorted $records
 	 */
 	protected function _sort(array $records, array $order) {
-		usort($records, function($a, $b) use ($order) { 
+		usort($records, function($a, $b) use ($order) {
 			$key = key($order);
 			$type = reset($order);
 			switch ($type) {
@@ -237,7 +237,7 @@ class File extends \lithium\data\Source {
 	 * Since this plugin expects you to define the schema, when you sepcify
 	 * a finders `fields`, `order`, etc clause, it checks to see if the
 	 * specified field exists in the defined schema.
-	 * 
+	 *
 	 * @param  array  $fields  An array of fields to check for
 	 * @param  array  $names  An array of the schema fields to check against
 	 * @return  boolean  True if fields are valid
@@ -249,6 +249,22 @@ class File extends \lithium\data\Source {
 			throw new QueryException("Unknown field '$unknown' in field list");
 		}
 		return true;
+	}
+
+	public function calculation($type, $query, array $options = []) {
+		$ext    = $this->_config['extension'];
+		$mode   = $this->_config['options']['mode'];
+		$params = $query->export($this, ['keys' => ['source']]);
+		$base   = implode(DIRECTORY_SEPARATOR, [
+			$this->_config['path'], $params['source']
+		]);
+		$this->file = new SplFileObject("{$base}.{$ext}", $mode);
+		$this->file->setFlags($this->_config['options']['flags']);
+		switch ($type) {
+			case 'count':
+				return iterator_count($this->file);
+			break;
+		}
 	}
 
 	/**
@@ -270,7 +286,7 @@ class File extends \lithium\data\Source {
 
 	/**
 	 * Returns a Schema object populated with the models' schema.
-	 * 
+	 *
 	 * @param mixed $entity Specifies the table name for which the schema should be returned, or
 	 *        the class name of the model object requesting the schema, in which case the model
 	 *        class will be queried for the correct table name.
